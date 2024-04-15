@@ -8,13 +8,15 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
+from std import *
+
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
 
 def load_sheet(SPREADSHEET_ID, SHEET_RANGE):
     credentials = None
     if os.path.exists("token.json"):
-        print("Credentials: ", credentials)
         credentials = Credentials.from_authorized_user_file("token.json", SCOPES)
+        dprint(f"Token.json credentials: {credentials} \n")
 
     if not credentials or not credentials.valid: # repair credentials
         if credentials and credentials.expired:
@@ -34,17 +36,26 @@ def load_sheet(SPREADSHEET_ID, SHEET_RANGE):
         with open("token.json", "w") as token:
             token.write(credentials.to_json()) # save repaired credentials
 
-    #print("Loading data from google sheets...")
-    #print(f"\tSpreadsheet ID: {SPREADSHEET_ID}\n\tService: {"sheets"} {"v4"}\n\tRange: {"SHEET_RANGE"}")
+    print("Loading data from google sheets...")
+    dprint(f"\tSpreadsheet ID: {SPREADSHEET_ID}\n\tService: {"sheets"} {"v4"}\n\tRange: {"SHEET_RANGE"}\n")
+
     try:
         service = build("sheets", "v4", credentials = credentials)
-        sheet = service.spreadsheet()# create loader class
+        sheet = service.spreadsheets()# create loader class
 
-        result = sheet.values().get(spreadsheetId=SPREADSHEET_ID, range=SHEET_RANGE).execute()
-        values = result.get("values",[])
-
-        for row in values:
-            print(row)
-
+        result = (
+            sheet.values()
+            .get(spreadsheetId=SPREADSHEET_ID, range=SHEET_RANGE)
+            .execute()
+        )
     except HttpError as error:
         print(error)
+
+
+    values = result.get("values",[])
+    print("Sheet loaded :)\n")
+
+    for row in values:
+        dprint(row)
+
+    return values
