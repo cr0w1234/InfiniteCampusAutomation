@@ -37,7 +37,7 @@ def load_sheet(SPREADSHEET_ID, SHEET_RANGE):
             token.write(credentials.to_json()) # save repaired credentials
 
     print("Loading data from google sheets...")
-    dprint(f"\tSpreadsheet ID: {SPREADSHEET_ID}\n\tService: {"sheets"} {"v4"}\n\tRange: {"SHEET_RANGE"}\n")
+    print(f"Spreadsheet ID: {SPREADSHEET_ID}, Service: (sheets, v4), Range: {SHEET_RANGE}")
 
     try:
         service = build("sheets", "v4", credentials = credentials)
@@ -48,14 +48,18 @@ def load_sheet(SPREADSHEET_ID, SHEET_RANGE):
             .get(spreadsheetId=SPREADSHEET_ID, range=SHEET_RANGE)
             .execute()
         )
+
+        values = result.get("values",[])
+        print("Sheet loaded :)\n")
+
+        for row in values:
+            dprint(row)
+
+        return values
+
     except HttpError as error:
         print(error)
+        return
 
-
-    values = result.get("values",[])
-    print("Sheet loaded :)\n")
-
-    for row in values:
-        dprint(row)
-
-    return values
+load_sheet("1Mn5APkaN1wZov8NB-fzREIPhW9JKVpttO47U-dG319k", "Sheet1!A1:E5")
+load_sheet("1Mn5APkaN1wZov8NB-fzREIPhW9JKVpttO47U-dG319k", "Sheet2!A1:B9")
